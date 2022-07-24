@@ -30,15 +30,10 @@ class Preprocessing:
 
     def get_sentiment(self):
         # label 1,2 --> negative; label 3 --> neutral; label 4,5 --> positive;
-        self.df.dropna(axis=0, inplace=True)
+        self.df.dropna(axis = 0, inplace = True)
         self.df['sentiment'] = 0
-        for i in range(len(self.df)):
-            if self.df.loc[i, 'Label'] in [1, 2]:
-                self.df.loc[i, 'sentiment'] = 'negative'
-            if self.df.loc[i, 'Label'] in [4, 5]:
-                self.df.loc[i, 'sentiment'] = 'positive'
-            else:
-                self.df.loc[i, 'sentiment'] = 'neutral'
+        dic = {1:'negative',2:'negative',3:'neutral',4:'positive',5:'positive',}
+        self.df['sentiment'] = self.df['Label'].map(lambda x:dic[x])
         return self.df
 
     def cleaning(self, lowercase=True, remove_special=True, stemming=True, stop_words=None):

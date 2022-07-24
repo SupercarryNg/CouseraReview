@@ -35,12 +35,12 @@ class preprocess_csv:
 
 
 
-    def cleaning(self, lowercase = True, remove_special = True, stemming = True, stop_words = None, stop_words_file = None):
+    def cleaning(self, lowercase = True, remove_special = True, stemming = True, stop_words = None):
         if not stop_words:
             stop_words = set(stopwords.words('english'))
         else:
-            with open('stopwords.txt', mode='r') as f:
-                stop_words = f
+            tmp = pd.read_csv('stopwords.txt', header = None)
+            stop_words = list(tmp[0])
         train_data = []
         self.df.dropna(axis = 0, inplace = True)
         print('The sample size is:{}'.format(len(self.df)))
@@ -62,14 +62,14 @@ class preprocess_csv:
                 filtered = self.stemming(filtered)
             else:
                 continue
-            train_data.append(filtered)
+            train_data.append(' '.join(filtered))
         self.df['tokens'] = train_data
 
         return  self.df
 if __name__ == '__main__':
     csv_file = 'reviews.csv'
     preprocess = preprocess_csv(csv_file)
-    data = preprocess.cleaning()
+    data = preprocess.cleaning(stop_words='stopwords.txt')
     print(data.head())
 
 

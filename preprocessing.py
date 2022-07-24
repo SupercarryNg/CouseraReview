@@ -13,21 +13,25 @@ class Preprocessing:
 
     @staticmethod
     def rem_meaningless(tweet):
+        # remove the urls
         tweet = re.sub(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+#]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", "", tweet)
+        # remove @ and references
         tweet = re.sub(r"(@[A-Za-z0-9_]+)", "", tweet)
+        # remove special charaecters
         tweet = re.sub(r"[#:)\n/_\-&]", "", tweet)
         return tweet
 
     @staticmethod
     def stemming(filtered):
+        # return each word's token
         stemmer = PorterStemmer()
         cleaned = [stemmer.stem(word) for word in filtered]
         return cleaned
 
     def get_sentiment(self):
+        # label 1,2 --> negative; label 3 --> neutral; label 4,5 --> positive;
         self.df.dropna(axis=0, inplace=True)
         self.df['sentiment'] = 0
-        # map func?
         for i in range(len(self.df)):
             if self.df.loc[i, 'Label'] in [1, 2]:
                 self.df.loc[i, 'sentiment'] = 'negative'
@@ -39,12 +43,11 @@ class Preprocessing:
 
     def cleaning(self, lowercase=True, remove_special=True, stemming=True, stop_words=None):
         '''
-
         :param lowercase:
         :param remove_special:
         :param stemming:
         :param stop_words:
-        :return:
+        :return: cleaned tokenized data with sentiment values (dataframe)
         '''
         print('Preprocessing the data')
         if not stop_words:

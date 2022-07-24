@@ -4,45 +4,56 @@ from nltk.corpus import stopwords
 from nltk.stem import *
 import pandas as pd
 
-class preprocess_csv:
 
-    def __init__(self,csv_file):
+class Preprocessing:
+
+    def __init__(self, csv_file):
         self.df = pd.read_csv(csv_file)
-        self.df = self.getsentiment()
+        self.df = self.get_sentiment()
 
-    def rem_meaningless(self, tweet):
-        tweet = re.sub(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+#]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", "", tweet)
+    @staticmethod
+    def rem_meaningless(tweet):
+        tweet = re.sub(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+#]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", "", tweet)
         tweet = re.sub(r"(@[A-Za-z0-9_]+)", "", tweet)
-        tweet = re.sub(r"[\#\:\)\n\/\_\-\&]", "", tweet)
+        tweet = re.sub(r"[#:)\n/_\-&]", "", tweet)
         return tweet
 
-    def stemming(self, filtered):
+    @staticmethod
+    def stemming(filtered):
         stemmer = PorterStemmer()
         cleaned = [stemmer.stem(word) for word in filtered]
         return cleaned
 
-    def getsentiment(self):
-        self.df.dropna(axis = 0, inplace = True)
+    def get_sentiment(self):
+        self.df.dropna(axis=0, inplace=True)
         self.df['sentiment'] = 0
+        # map func?
         for i in range(len(self.df)):
-            if self.df.loc[i,'Label'] in [1,2]:
-                self.df.loc[i,'sentiment'] = 'negative'
+            if self.df.loc[i, 'Label'] in [1, 2]:
+                self.df.loc[i, 'sentiment'] = 'negative'
             if self.df.loc[i, 'Label'] in [4, 5]:
                 self.df.loc[i, 'sentiment'] = 'positive'
             else:
                 self.df.loc[i, 'sentiment'] = 'neutral'
         return self.df
 
+    def cleaning(self, lowercase=True, remove_special=True, stemming=True, stop_words=None):
+        '''
 
-
-    def cleaning(self, lowercase = True, remove_special = True, stemming = True, stop_words = None):
+        :param lowercase:
+        :param remove_special:
+        :param stemming:
+        :param stop_words:
+        :return:
+        '''
+        print('Preprocessing the data')
         if not stop_words:
             stop_words = set(stopwords.words('english'))
         else:
-            tmp = pd.read_csv('stopwords.txt', header = None)
+            tmp = pd.read_csv('stopwords.txt', header=None)
             stop_words = list(tmp[0])
         train_data = []
-        self.df.dropna(axis = 0, inplace = True)
+        self.df.dropna(axis=0, inplace=True)
         print('The sample size is:{}'.format(len(self.df)))
         for tweet in self.df['Review']:
             if lowercase:
@@ -65,12 +76,14 @@ class preprocess_csv:
             train_data.append(' '.join(filtered))
         self.df['tokens'] = train_data
 
-        return  self.df
+        return self.df
+
+
 if __name__ == '__main__':
-    csv_file = 'reviews.csv'
-    preprocess = preprocess_csv(csv_file)
-    data = preprocess.cleaning(stop_words='stopwords.txt')
-    print(data.head())
+    csv_file = 'data/reviews.csv'
+    preprocess = Preprocessing(csv_file)
+    df = preprocess.cleaning(stop_words='stopwords.txt')
+    print(df.head())
 
 
 

@@ -35,7 +35,15 @@ class Preprocessing:
         dic = {1:'negative',2:'negative',3:'neutral',4:'positive',5:'positive',}
         self.df['sentiment'] = self.df['Label'].map(lambda x:dic[x])
         return self.df
+    
+    def getsample(self, positveNum = 7000, data = None):
+        posindex = data[(data['sentiment'] == 'positive')].index.tolist()
+        neuindex = data[(data['sentiment'] == 'neutral')].index.tolist()
+        negindex = data[(data['sentiment'] == 'negative')].index.tolist()
+        posidx = np.random.choice(posindex,positveNum, replace = False).tolist()
 
+        return self.df.iloc[posidx + negindex + neuindex]
+    
     def cleaning(self, lowercase=True, remove_special=True, stemming=True, stop_words=None):
         '''
         :param lowercase:
@@ -75,14 +83,15 @@ class Preprocessing:
         self.df['tokens'] = train_data
 
         return self.df
+    
 
 
 if __name__ == '__main__':
-    csv_file = 'data/reviews.csv'
-    preprocess = Preprocessing(csv_file)
-    df = preprocess.cleaning(stop_words='stopwords.txt')
-    print(df.head())
-
+    csv_file = 'reviews.csv'
+    preprocess = preprocess_csv(csv_file)
+    cleaneddata = preprocess.cleaning(stop_words='stopwords.txt')
+    samples = preprocess.getsample(data=cleaneddata).reset_index()
+    print(samples.head())
 
 
 

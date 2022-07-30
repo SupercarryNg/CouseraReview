@@ -10,11 +10,11 @@ from nltk.tokenize import word_tokenize
 
 class Preprocessing:
 
-    def __init__(self, csv_file, positive_num):
+    def __init__(self, csv_file, positive_num, seed_num=None):
         self.df = pd.read_csv(csv_file)
         self.df = self.get_sentiment()
 
-        self.get_sample(positive_num=positive_num)
+        self.get_sample(positive_num=positive_num, seed_num=seed_num)
 
     @staticmethod
     def rem_meaningless(tweet):
@@ -37,7 +37,9 @@ class Preprocessing:
         self.df['sentiment'] = self.df['Label'].map(lambda x: dict_[x])
         return self.df
 
-    def get_sample(self, positive_num=7000):
+    def get_sample(self, positive_num=7000, seed_num=None):
+        if seed_num:
+            np.random.seed(seed_num)
         data = self.df.copy()
         posindex = data[(data['sentiment'] == 'positive')].index.tolist()
         neuindex = data[(data['sentiment'] == 'neutral')].index.tolist()
@@ -80,8 +82,9 @@ class Preprocessing:
                     filtered.append(word)
             if stemming:
                 filtered = self.stemming(filtered)
-            else:
-                continue
+#                 train_data.append(' '.join(filtered))
+#             else:
+                ## continue (it will skip the for loop)
             train_data.append(' '.join(filtered))
         self.df['tokens'] = train_data
 

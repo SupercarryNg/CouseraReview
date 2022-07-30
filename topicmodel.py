@@ -1,4 +1,5 @@
 import os
+import warnings
 from collections import Counter
 
 import gensim.models.ldamodel
@@ -13,8 +14,8 @@ from sklearn.metrics import silhouette_score
 from wordcloud import WordCloud
 
 from autoencoder import autoencoder_reduce
+from finch import FINCH
 
-import warnings
 warnings.filterwarnings('ignore')
 
 
@@ -95,7 +96,7 @@ class TopicModel:
                     vec[i, topic] = prob
 
         elif method == 'BERT':
-            model = SentenceTransformer('all-MiniLM-L12-v2')
+            model = SentenceTransformer('all-mpnet-base-v2')
             vec = np.array(model.encode(self.texts, show_progress_bar=True))
             self.vec_dict[method] = vec
 
@@ -113,6 +114,7 @@ class TopicModel:
 
         self.vec_dict[method] = vec
         print('Vectorization {} done.'.format(method))
+        # (N, c) -> sentence
 
     def fit(self, method=None, cluster_method=None):
         if method is None:
@@ -125,32 +127,47 @@ class TopicModel:
         if method == 'LDA':
             return
 
+        print('Using {} method for clustering...'.format(cluster_method))
+
         if cluster_method == 'KMeans':
             best_cluster = 10  # initialize best cluster number
             best_s_score = -1
-            if self.req_k:
-                cluster_model = KMeans(self.req_k)
+            # if self.req_k:
+            #     cluster_model = KMeans(self.req_k)
+            #     cluster_model.fit(self.vec_dict[method])
+            # else:
+            for i in range(2, 20):
+                cluster_model = KMeans(i)
                 cluster_model.fit(self.vec_dict[method])
-            else:
-                for i in range(2, 20):
-                    cluster_model = KMeans(i)
-                    cluster_model.fit(self.vec_dict[method])
-                    tmp_res = cluster_model.labels_
-                    s_score = self.evaluation(res=tmp_res)
-                    if s_score > best_s_score:
-                        best_cluster = i
-                        best_s_score = s_score
+                tmp_res = cluster_model.labels_
+                s_score = self.evaluation(res=tmp_res)
+                if s_score > best_s_score:
+                    best_cluster = i
+                    best_s_score = s_score
 
-                self.req_k = best_cluster
-                print('Best number of topic clusters is {}'.format(best_cluster))
-                cluster_model = KMeans(n_clusters=best_cluster)
-                cluster_model.fit(self.vec_dict[method])
+            self.req_k = best_cluster
+            print('Best number of topic clusters is {}, silhouette_score is {}'.format(best_cluster, best_s_score))
+            cluster_model = KMeans(n_clusters=best_cluster)
+            cluster_model.fit(self.vec_dict[method])
 
             lbs = cluster_model.labels_
             self.label_dict[method] = lbs
 
         elif cluster_method == 'FINCH':
-            pass  # Not finished yet
+            c, num_clust, req_c = FINCH(self.vec_dict[method], distance='euclidean', req_clust=None)
+            # c -> shape (N, num of partition)
+            best_silhouette_score = -1
+            best_partition = 0
+            for i in range(c.shape[1]):
+                tmp_score = silhouette_score(self.vec_dict[method], c[:, i])
+                if tmp_score > best_silhouette_score:
+                    best_silhouette_score = tmp_score
+                    best_partition = i
+
+            lbs = c[:, best_partition]
+            print('Best_partition: {}'.format(best_partition))
+            self.label_dict[method] = lbs
+            self.req_k = len(np.unique(lbs))
 
     def evaluation(self, method=None, res=None):
         if method is None:

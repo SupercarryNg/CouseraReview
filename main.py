@@ -6,7 +6,7 @@ def main():
     csv_file = 'data/reviews.csv'
     preprocess = Preprocessing(csv_file)
     df = preprocess.cleaning(stop_words='stopwords.txt')
-    model = TopicModel(df=df, method='LDA_BERT', req_k=8)
+    model = TopicModel(df=df, sentiment='negative', method='LDA_BERT', cluster_method='KMeans', req_k=8)
     model.load_data()
     model.vectorization()
     model.fit()

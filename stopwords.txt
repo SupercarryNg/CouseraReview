@@ -569,3 +569,6 @@ yourself
 yourselves
 z
 zero
+good
+great
+learn

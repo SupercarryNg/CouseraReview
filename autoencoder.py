@@ -54,7 +54,7 @@ def autoencoder_reduce(vec_ldabert):
     X = vec_ldabert
     input_dim = X.shape[1]
     trainset = MyData(X)
-    loader = DataLoader(trainset, batch_size=32, shuffle=True, drop_last=True)
+    loader = DataLoader(trainset, batch_size=64, shuffle=True, drop_last=True)
 
     model = Autoencoder(input_dim, latent_dim).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)

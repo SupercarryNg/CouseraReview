@@ -24,3 +24,4 @@ torch==1.12.0
 torchaudio==0.12.0
 torchvision==0.13.0
 wordcloud
+transformers==4.21.1

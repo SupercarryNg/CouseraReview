@@ -16,3 +16,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+    # This is a test for using ssh connection on github
+    print('Yes')
